@@ -1,0 +1,4 @@
+# Renombra este archivo a config.properties y rellena con tus datos
+db.url=jdbc:mysql://localhost:3306/gestor_incidencias
+db.user=TU_USUARIO_MYSQL
+db.password=TU_CONTRASEÑA_MYSQL
