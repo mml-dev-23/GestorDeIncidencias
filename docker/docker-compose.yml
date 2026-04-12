@@ -1,0 +1,17 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: gestor_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: Admin1234
+      MYSQL_DATABASE: gestor_incidencias
+      MYSQL_ROOT_HOST: "%"
+    ports:
+      - "3306:3306"
+    volumes:
+      - ../Crear_BD.sql:/docker-entrypoint-initdb.d/01_Crear_BD.sql
+      - ../InsertarDatos_permisos.sql:/docker-entrypoint-initdb.d/02_InsertarDatos.sql
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
