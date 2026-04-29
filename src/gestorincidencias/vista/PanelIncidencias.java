@@ -117,6 +117,7 @@ public class PanelIncidencias extends javax.swing.JPanel {
 
         // Cargar datos en los combos 
         cargarCombosEdicion();
+        cargarComboFiltroEstados();
 
         // Configurar combo de asignación (solo visible para Admin)
         SesionUsuario sesion = SesionUsuario.getInstance();
@@ -237,6 +238,30 @@ public class PanelIncidencias extends javax.swing.JPanel {
 
         // Configurar visibilidad inicial de componentes de comentarios
         configurarVisibilidadComentarios();
+
+        // Botón confirmar resolución: oculto por defecto
+        btnConfirmarResolucion.setVisible(false);
+        btnConfirmarResolucion.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        btnConfirmarResolucion.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(this,
+                    "¿Confirmas que la incidencia ha sido resuelta correctamente?",
+                    "Confirmar resolución",
+                    JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                incidenciaSeleccionada.setEstado(Estado.CERRADA);
+                incidenciaSeleccionada.setFechaResolucion(java.time.LocalDateTime.now());
+                boolean actualizada = gestorIncidencias.actualizar(incidenciaSeleccionada);
+                if (actualizada) {
+                    JOptionPane.showMessageDialog(this,
+                            "Incidencia cerrada correctamente",
+                            "Éxito",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    recargarConFiltrosActuales();
+                    mostrarDetalleIncidencia(incidenciaSeleccionada);
+                }
+            }
+        });
 
     }
 
@@ -477,6 +502,27 @@ public class PanelIncidencias extends javax.swing.JPanel {
         // Añadir cada técnico al combo
         for (String nombreTecnico : tecnicos) {
             comboAsignacion.addItem(nombreTecnico);
+        }
+    }
+    
+    /**
+     * Carga los estados en el combo de filtro dinámicamente desde el enum.
+     */
+    private void cargarComboFiltroEstados() {
+        java.awt.event.ActionListener[] listeners = comboEstado.getActionListeners();
+        for (java.awt.event.ActionListener l : listeners) {
+            comboEstado.removeActionListener(l);
+        }
+
+        comboEstado.removeAllItems();
+        comboEstado.addItem("Todos los estados");
+        for (Estado est : Estado.values()) {
+            comboEstado.addItem(est.getNombre());
+        }
+
+        // Restaurar el listener
+        for (java.awt.event.ActionListener l : listeners) {
+            comboEstado.addActionListener(l);
         }
     }
 
@@ -763,10 +809,24 @@ public class PanelIncidencias extends javax.swing.JPanel {
         btnGuardar.setEnabled(false);
         btnGuardar.setBackground(new Color(180, 180, 180));
 
+        // Mostrar botón confirmar resolución solo si es CLIENTE y estado RESUELTA
+        boolean esCliente = rol == Rol.CLIENTE;
+        boolean estaResuelta = incidencia.getEstado() == Estado.RESUELTA;
+        boolean estaCerrada = incidencia.getEstado() == Estado.CERRADA;
+        btnConfirmarResolucion.setVisible(esCliente && estaResuelta);
+
+        // Si la incidencia está CERRADA, desactivar edición para cliente y técnico
+        if (estaCerrada && (rol == Rol.CLIENTE || rol == Rol.TECNICO)) {
+            btnEditar.setEnabled(false);
+            btnEditar.setBackground(new Color(180, 180, 180));
+            panelContenido.setBackground(new Color(240, 240, 240));
+            panelDetalle.setBackground(new Color(240, 240, 240));
+
+        }
         //Cargar comentarios de la incidencia
-        cargarComentarios(incidencia.getId());
+            cargarComentarios(incidencia.getId());
     }
-    
+
     /**
      * Muestra/oculta botones de edición según selección de comentario Solo
      * funciona si estamos en modo edición
@@ -924,6 +984,14 @@ public class PanelIncidencias extends javax.swing.JPanel {
         comboDetallePrioridad.setSelectedIndex(incidenciaSeleccionada.getPrioridad().ordinal());
 
         // Estado
+        comboDetalleEstado.removeAllItems();
+        List<Estado> permitidos = incidenciaSeleccionada.getEstado()
+                .getTransicionesPermitidas(Rol.ADMINISTRADOR);
+        comboDetalleEstado.addItem(incidenciaSeleccionada.getEstado().getNombre());
+        for (Estado est : permitidos) {
+            comboDetalleEstado.addItem(est.getNombre());
+        }
+        comboDetalleEstado.setEnabled(!permitidos.isEmpty());
         comboDetalleEstado.setVisible(true);
         comboDetalleEstado.setSelectedIndex(incidenciaSeleccionada.getEstado().ordinal());
 
@@ -945,6 +1013,14 @@ public class PanelIncidencias extends javax.swing.JPanel {
      */
     private void configurarEdicionTecnicoAsignada() {
         // Solo puede cambiar estado 
+        comboDetalleEstado.removeAllItems();
+        List<Estado> permitidos = incidenciaSeleccionada.getEstado()
+                .getTransicionesPermitidas(Rol.TECNICO);
+        comboDetalleEstado.addItem(incidenciaSeleccionada.getEstado().getNombre());
+        for (Estado est : permitidos) {
+            comboDetalleEstado.addItem(est.getNombre());
+        }
+        comboDetalleEstado.setEnabled(!permitidos.isEmpty());
         comboDetalleEstado.setVisible(true);
         comboDetalleEstado.setSelectedIndex(incidenciaSeleccionada.getEstado().ordinal());
 
@@ -963,6 +1039,15 @@ public class PanelIncidencias extends javax.swing.JPanel {
         comboDetallePrioridad.setVisible(true);
         comboDetallePrioridad.setSelectedIndex(incidenciaSeleccionada.getPrioridad().ordinal());
 
+        
+        comboDetalleEstado.removeAllItems();
+        List<Estado> permitidos = incidenciaSeleccionada.getEstado()
+                .getTransicionesPermitidas(Rol.TECNICO);
+        comboDetalleEstado.addItem(incidenciaSeleccionada.getEstado().getNombre());
+        for (Estado est : permitidos) {
+            comboDetalleEstado.addItem(est.getNombre());
+        }
+        comboDetalleEstado.setEnabled(!permitidos.isEmpty());
         comboDetalleEstado.setVisible(true);
         comboDetalleEstado.setSelectedIndex(incidenciaSeleccionada.getEstado().ordinal());
 
@@ -1134,6 +1219,11 @@ public class PanelIncidencias extends javax.swing.JPanel {
                             incidenciaSeleccionada.setIdTecnicoAsignado(idTecnicoEncontrado);
                             incidenciaSeleccionada.setNombreTecnico(tecnicoSeleccionado);
                             cambiosRealizados = true;
+                            // Volver a PENDIENTE automáticamente al reasignar técnico
+                            if (incidenciaSeleccionada.getEstado() != Estado.CERRADA) {
+                                incidenciaSeleccionada.setEstado(Estado.PENDIENTE);
+                                incidenciaSeleccionada.setFechaResolucion(null);
+                            }
                             System.out.println("Técnico asignado: " + tecnicoSeleccionado + " (ID: " + idTecnicoEncontrado + ")");
                         } else {
                             System.err.println("No se encontró técnico: " + tecnicoSeleccionado);
@@ -1270,7 +1360,7 @@ public class PanelIncidencias extends javax.swing.JPanel {
         }
 
         if (comboDetalleEstado.isVisible()) {
-            comboDetalleEstado.setSelectedIndex(incidenciaSeleccionada.getEstado().ordinal());
+            comboDetalleEstado.setSelectedItem(incidenciaSeleccionada.getEstado().getNombre());
         }
 
         if (comboDetalleTecnico.isVisible()) {
@@ -1864,6 +1954,12 @@ public class PanelIncidencias extends javax.swing.JPanel {
         // Restaurar fondo
         panelDetalle.setBackground(Color.WHITE);
 
+        // Ocultar botón confirmar resolución y restaurar colores
+        btnConfirmarResolucion.setVisible(false);
+        panelContenido.setBackground(null);
+        panelContenido.setOpaque(false);
+        panelDetalle.setBackground(Color.WHITE);
+
         modoEdicion = false;
     }
 
@@ -2081,9 +2177,12 @@ public class PanelIncidencias extends javax.swing.JPanel {
         lblDetalleFechaCreacion = new javax.swing.JLabel();
         lblDetalleReportadoPor = new javax.swing.JLabel();
         panelBotones = new javax.swing.JPanel();
+        jPanel1 = new javax.swing.JPanel();
         btnEditar = new javax.swing.JButton();
         btnCancelar = new javax.swing.JButton();
         btnGuardar = new javax.swing.JButton();
+        jPanel2 = new javax.swing.JPanel();
+        btnConfirmarResolucion = new javax.swing.JButton();
 
         setBackground(new java.awt.Color(240, 245, 250));
         setMinimumSize(new java.awt.Dimension(1000, 600));
@@ -2306,6 +2405,8 @@ public class PanelIncidencias extends javax.swing.JPanel {
         gridBagConstraints.insets = new java.awt.Insets(8, 10, 3, 10);
         panelContenido.add(lblDescripcionTitulo, gridBagConstraints);
 
+        scrollPane1.setMinimumSize(new java.awt.Dimension(194, 25));
+
         txtAreaDescripcion.setEditable(false);
         txtAreaDescripcion.setColumns(20);
         txtAreaDescripcion.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
@@ -2502,33 +2603,36 @@ public class PanelIncidencias extends javax.swing.JPanel {
         panelDetalle.add(panelContenido, java.awt.BorderLayout.CENTER);
 
         panelBotones.setOpaque(false);
-        panelBotones.setPreferredSize(new java.awt.Dimension(370, 60));
-        panelBotones.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 20, 10));
+        panelBotones.setPreferredSize(new java.awt.Dimension(420, 85));
+        panelBotones.setLayout(new java.awt.BorderLayout());
+
+        jPanel1.setOpaque(false);
+        jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 20, 5));
 
         btnEditar.setBackground(new java.awt.Color(130, 242, 255));
         btnEditar.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
         btnEditar.setForeground(new java.awt.Color(10, 30, 50));
         btnEditar.setText("Editar");
         btnEditar.setFocusPainted(false);
-        btnEditar.setPreferredSize(new java.awt.Dimension(100, 35));
+        btnEditar.setPreferredSize(new java.awt.Dimension(85, 35));
         btnEditar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnEditarActionPerformed(evt);
             }
         });
-        panelBotones.add(btnEditar);
+        jPanel1.add(btnEditar);
 
         btnCancelar.setBackground(new java.awt.Color(150, 150, 150));
         btnCancelar.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
         btnCancelar.setForeground(new java.awt.Color(255, 255, 255));
         btnCancelar.setText("Cancelar");
-        btnCancelar.setPreferredSize(new java.awt.Dimension(100, 35));
+        btnCancelar.setPreferredSize(new java.awt.Dimension(85, 35));
         btnCancelar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnCancelarActionPerformed(evt);
             }
         });
-        panelBotones.add(btnCancelar);
+        jPanel1.add(btnCancelar);
 
         btnGuardar.setBackground(new java.awt.Color(80, 200, 120));
         btnGuardar.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
@@ -2541,7 +2645,27 @@ public class PanelIncidencias extends javax.swing.JPanel {
                 btnGuardarActionPerformed(evt);
             }
         });
-        panelBotones.add(btnGuardar);
+        jPanel1.add(btnGuardar);
+
+        panelBotones.add(jPanel1, java.awt.BorderLayout.SOUTH);
+
+        jPanel2.setOpaque(false);
+        jPanel2.setPreferredSize(new java.awt.Dimension(420, 50));
+
+        btnConfirmarResolucion.setBackground(new java.awt.Color(46, 204, 113));
+        btnConfirmarResolucion.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
+        btnConfirmarResolucion.setForeground(new java.awt.Color(255, 255, 255));
+        btnConfirmarResolucion.setText("Confirmar resolución");
+        btnConfirmarResolucion.setFocusPainted(false);
+        btnConfirmarResolucion.setPreferredSize(new java.awt.Dimension(200, 35));
+        btnConfirmarResolucion.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnConfirmarResolucionActionPerformed(evt);
+            }
+        });
+        jPanel2.add(btnConfirmarResolucion);
+
+        panelBotones.add(jPanel2, java.awt.BorderLayout.NORTH);
 
         panelDetalle.add(panelBotones, java.awt.BorderLayout.SOUTH);
 
@@ -2604,11 +2728,16 @@ public class PanelIncidencias extends javax.swing.JPanel {
         eliminarComentarioSeleccionado();
     }//GEN-LAST:event_btnEliminarComentarioActionPerformed
 
+    private void btnConfirmarResolucionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnConfirmarResolucionActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnConfirmarResolucionActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAyuda;
     private javax.swing.JButton btnAñadirComentario;
     private javax.swing.JButton btnCancelar;
+    private javax.swing.JButton btnConfirmarResolucion;
     private javax.swing.JButton btnEditar;
     private javax.swing.JButton btnEditarComentario;
     private javax.swing.JButton btnEliminar;
@@ -2623,6 +2752,8 @@ public class PanelIncidencias extends javax.swing.JPanel {
     private javax.swing.JComboBox<String> comboEstado;
     private javax.swing.JComboBox<String> comboOrden;
     private javax.swing.JComboBox<String> comboPrioridad;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JLabel lblComentarios;
     private javax.swing.JLabel lblContadorIncidencias;
     private javax.swing.JLabel lblDescripcionTitulo;

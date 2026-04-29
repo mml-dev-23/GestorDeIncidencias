@@ -1,6 +1,9 @@
 package gestorincidencias.modelo;
 
 import gestorincidencias.util.IconoUtil;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import javax.swing.ImageIcon;
 
 /**
@@ -72,4 +75,20 @@ public enum Estado {
         }
         throw new IllegalArgumentException("Estado no válido: " + nombre);
     }
+    
+    public List<Estado> getTransicionesPermitidas(Rol rol) {
+    if (rol == Rol.ADMINISTRADOR) {
+        // Admin puede ir a cualquier estado salvo quedarse igual
+        return Arrays.stream(Estado.values())
+                     .filter(e -> e != this)
+                     .collect(java.util.stream.Collectors.toList());
+    }
+    switch (this) {
+        case PENDIENTE:  return Arrays.asList(EN_PROCESO);
+        case EN_PROCESO: return Arrays.asList(RESUELTA);
+        case RESUELTA:   return Collections.emptyList(); 
+        case CERRADA:    return Collections.emptyList();
+        default:         return Collections.emptyList();
+    }
+}
 }
