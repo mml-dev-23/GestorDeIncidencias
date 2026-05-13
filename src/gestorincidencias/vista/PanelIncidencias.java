@@ -883,7 +883,7 @@ public class PanelIncidencias extends javax.swing.JPanel {
             tipoPermiso = "admin";
         } else if (rol == Rol.TECNICO) {
             boolean esIncidenciaAsignada = incidenciaSeleccionada.tieneTecnicoAsignado()
-                    && incidenciaSeleccionada.getIdTecnicoAsignado() == idUsuario;
+                    && incidenciaSeleccionada.getIdTecnicoAsignado().equals(idUsuario);
             boolean esIncidenciaCreada = incidenciaSeleccionada.getIdCliente() == idUsuario;
 
             if (esIncidenciaAsignada) {
@@ -928,6 +928,11 @@ public class PanelIncidencias extends javax.swing.JPanel {
         btnEditar.setBackground(new Color(180, 180, 180));
         btnEliminar.setVisible(true);
 
+        cargarCombosEdicion();
+        if (sesion.getRolActual() == Rol.ADMINISTRADOR) {
+            cargarComboAsignacion();
+        }
+
         // CONFIGURAR PERMISOS SEGÚN TIPO
         switch (tipoPermiso) {
             case "admin":
@@ -955,7 +960,7 @@ public class PanelIncidencias extends javax.swing.JPanel {
             scrollNuevoComentario.setVisible(true);
             txtNuevoComentario.setVisible(true);
             btnAñadirComentario.setVisible(true);
-
+           
             // Configurar placeholder si no está configurado
             if (txtNuevoComentario.getText().isEmpty()) {
                 txtNuevoComentario.setText("Añadir comentario...");
@@ -1022,7 +1027,7 @@ public class PanelIncidencias extends javax.swing.JPanel {
         }
         comboDetalleEstado.setEnabled(!permitidos.isEmpty());
         comboDetalleEstado.setVisible(true);
-        comboDetalleEstado.setSelectedIndex(incidenciaSeleccionada.getEstado().ordinal());
+        comboDetalleEstado.setSelectedIndex(0);
 
         txtAreaDescripcion.setEditable(false);
         txtAreaDescripcion.setBackground(new Color(245,245,245));
@@ -2165,10 +2170,10 @@ public class PanelIncidencias extends javax.swing.JPanel {
         lblComentarios = new javax.swing.JLabel();
         scrollComentarios = new javax.swing.JScrollPane();
         listComentarios = new javax.swing.JList<>();
-        scrollNuevoComentario = new javax.swing.JScrollPane();
-        txtNuevoComentario = new javax.swing.JTextArea();
         btnEditarComentario = new javax.swing.JButton();
         btnEliminarComentario = new javax.swing.JButton();
+        scrollNuevoComentario = new javax.swing.JScrollPane();
+        txtNuevoComentario = new javax.swing.JTextArea();
         btnAñadirComentario = new javax.swing.JButton();
         comboDetalleCategoria = new javax.swing.JComboBox<>();
         comboDetallePrioridad = new javax.swing.JComboBox<>();
@@ -2177,12 +2182,12 @@ public class PanelIncidencias extends javax.swing.JPanel {
         lblDetalleFechaCreacion = new javax.swing.JLabel();
         lblDetalleReportadoPor = new javax.swing.JLabel();
         panelBotones = new javax.swing.JPanel();
+        jPanel2 = new javax.swing.JPanel();
+        btnConfirmarResolucion = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         btnEditar = new javax.swing.JButton();
         btnCancelar = new javax.swing.JButton();
         btnGuardar = new javax.swing.JButton();
-        jPanel2 = new javax.swing.JPanel();
-        btnConfirmarResolucion = new javax.swing.JButton();
 
         setBackground(new java.awt.Color(240, 245, 250));
         setMinimumSize(new java.awt.Dimension(1000, 600));
@@ -2348,7 +2353,7 @@ public class PanelIncidencias extends javax.swing.JPanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(5, 10, 10, 10);
+        gridBagConstraints.insets = new java.awt.Insets(5, 10, 5, 10);
         panelContenido.add(lblDetalleId, gridBagConstraints);
 
         lblDetallePrioridad.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
@@ -2359,7 +2364,7 @@ public class PanelIncidencias extends javax.swing.JPanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(3, 10, 10, 10);
+        gridBagConstraints.insets = new java.awt.Insets(3, 10, 5, 10);
         panelContenido.add(lblDetallePrioridad, gridBagConstraints);
 
         lblDetalleEstado.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
@@ -2370,7 +2375,7 @@ public class PanelIncidencias extends javax.swing.JPanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(3, 10, 10, 10);
+        gridBagConstraints.insets = new java.awt.Insets(3, 10, 5, 10);
         panelContenido.add(lblDetalleEstado, gridBagConstraints);
 
         lblDetalleCategoria.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
@@ -2381,7 +2386,7 @@ public class PanelIncidencias extends javax.swing.JPanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(3, 10, 10, 10);
+        gridBagConstraints.insets = new java.awt.Insets(3, 10, 5, 10);
         panelContenido.add(lblDetalleCategoria, gridBagConstraints);
 
         lblDetalleAsignacion.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
@@ -2392,7 +2397,7 @@ public class PanelIncidencias extends javax.swing.JPanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(3, 10, 10, 10);
+        gridBagConstraints.insets = new java.awt.Insets(3, 10, 5, 10);
         panelContenido.add(lblDetalleAsignacion, gridBagConstraints);
 
         lblDescripcionTitulo.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
@@ -2402,10 +2407,10 @@ public class PanelIncidencias extends javax.swing.JPanel {
         gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(8, 10, 3, 10);
+        gridBagConstraints.insets = new java.awt.Insets(5, 10, 3, 10);
         panelContenido.add(lblDescripcionTitulo, gridBagConstraints);
 
-        scrollPane1.setMinimumSize(new java.awt.Dimension(194, 25));
+        scrollPane1.setMinimumSize(new java.awt.Dimension(194, 40));
 
         txtAreaDescripcion.setEditable(false);
         txtAreaDescripcion.setColumns(20);
@@ -2431,10 +2436,10 @@ public class PanelIncidencias extends javax.swing.JPanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(15, 10, 5, 10);
+        gridBagConstraints.insets = new java.awt.Insets(5, 10, 5, 10);
         panelContenido.add(lblComentarios, gridBagConstraints);
 
-        scrollComentarios.setPreferredSize(new java.awt.Dimension(350, 120));
+        scrollComentarios.setPreferredSize(new java.awt.Dimension(350, 150));
 
         listComentarios.setBackground(new java.awt.Color(250, 250, 250));
         listComentarios.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
@@ -2452,28 +2457,9 @@ public class PanelIncidencias extends javax.swing.JPanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 0.3;
+        gridBagConstraints.weighty = 0.4;
         gridBagConstraints.insets = new java.awt.Insets(3, 10, 10, 10);
         panelContenido.add(scrollComentarios, gridBagConstraints);
-
-        scrollNuevoComentario.setPreferredSize(new java.awt.Dimension(350, 50));
-
-        txtNuevoComentario.setColumns(20);
-        txtNuevoComentario.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
-        txtNuevoComentario.setForeground(new java.awt.Color(150, 150, 150));
-        txtNuevoComentario.setLineWrap(true);
-        txtNuevoComentario.setRows(2);
-        txtNuevoComentario.setText("Añadir comentario...");
-        txtNuevoComentario.setWrapStyleWord(true);
-        scrollNuevoComentario.setViewportView(txtNuevoComentario);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 12;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(5, 10, 5, 10);
-        panelContenido.add(scrollNuevoComentario, gridBagConstraints);
 
         btnEditarComentario.setBackground(new java.awt.Color(46, 204, 113));
         btnEditarComentario.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
@@ -2514,6 +2500,25 @@ public class PanelIncidencias extends javax.swing.JPanel {
         gridBagConstraints.insets = new java.awt.Insets(5, 10, 5, 10);
         panelContenido.add(btnEliminarComentario, gridBagConstraints);
 
+        scrollNuevoComentario.setPreferredSize(new java.awt.Dimension(350, 80));
+
+        txtNuevoComentario.setColumns(20);
+        txtNuevoComentario.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
+        txtNuevoComentario.setForeground(new java.awt.Color(150, 150, 150));
+        txtNuevoComentario.setLineWrap(true);
+        txtNuevoComentario.setRows(2);
+        txtNuevoComentario.setText("Añadir comentario...");
+        txtNuevoComentario.setWrapStyleWord(true);
+        scrollNuevoComentario.setViewportView(txtNuevoComentario);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(5, 10, 5, 10);
+        panelContenido.add(scrollNuevoComentario, gridBagConstraints);
+
         btnAñadirComentario.setBackground(new java.awt.Color(52, 152, 219));
         btnAñadirComentario.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnAñadirComentario.setForeground(new java.awt.Color(255, 255, 255));
@@ -2528,9 +2533,8 @@ public class PanelIncidencias extends javax.swing.JPanel {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 13;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(5, 10, 15, 10);
+        gridBagConstraints.insets = new java.awt.Insets(5, 10, 5, 10);
         panelContenido.add(btnAñadirComentario, gridBagConstraints);
 
         comboDetalleCategoria.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
@@ -2541,7 +2545,7 @@ public class PanelIncidencias extends javax.swing.JPanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(5, 10, 10, 10);
+        gridBagConstraints.insets = new java.awt.Insets(5, 10, 5, 10);
         panelContenido.add(comboDetalleCategoria, gridBagConstraints);
 
         comboDetallePrioridad.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
@@ -2552,7 +2556,7 @@ public class PanelIncidencias extends javax.swing.JPanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(3, 10, 10, 10);
+        gridBagConstraints.insets = new java.awt.Insets(3, 10, 5, 10);
         panelContenido.add(comboDetallePrioridad, gridBagConstraints);
 
         comboDetalleEstado.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
@@ -2562,7 +2566,7 @@ public class PanelIncidencias extends javax.swing.JPanel {
         gridBagConstraints.gridy = 16;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(3, 10, 10, 10);
+        gridBagConstraints.insets = new java.awt.Insets(3, 10, 5, 10);
         panelContenido.add(comboDetalleEstado, gridBagConstraints);
 
         comboDetalleTecnico.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
@@ -2573,7 +2577,7 @@ public class PanelIncidencias extends javax.swing.JPanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(3, 10, 10, 10);
+        gridBagConstraints.insets = new java.awt.Insets(3, 10, 5, 10);
         panelContenido.add(comboDetalleTecnico, gridBagConstraints);
 
         lblDetalleFechaCreacion.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
@@ -2585,7 +2589,7 @@ public class PanelIncidencias extends javax.swing.JPanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(20, 10, 3, 10);
+        gridBagConstraints.insets = new java.awt.Insets(5, 10, 3, 10);
         panelContenido.add(lblDetalleFechaCreacion, gridBagConstraints);
 
         lblDetalleReportadoPor.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
@@ -2603,8 +2607,26 @@ public class PanelIncidencias extends javax.swing.JPanel {
         panelDetalle.add(panelContenido, java.awt.BorderLayout.CENTER);
 
         panelBotones.setOpaque(false);
-        panelBotones.setPreferredSize(new java.awt.Dimension(420, 85));
+        panelBotones.setPreferredSize(new java.awt.Dimension(420, 75));
         panelBotones.setLayout(new java.awt.BorderLayout());
+
+        jPanel2.setOpaque(false);
+        jPanel2.setPreferredSize(new java.awt.Dimension(420, 40));
+
+        btnConfirmarResolucion.setBackground(new java.awt.Color(46, 204, 113));
+        btnConfirmarResolucion.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
+        btnConfirmarResolucion.setForeground(new java.awt.Color(255, 255, 255));
+        btnConfirmarResolucion.setText("Confirmar resolución");
+        btnConfirmarResolucion.setFocusPainted(false);
+        btnConfirmarResolucion.setPreferredSize(new java.awt.Dimension(170, 25));
+        btnConfirmarResolucion.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnConfirmarResolucionActionPerformed(evt);
+            }
+        });
+        jPanel2.add(btnConfirmarResolucion);
+
+        panelBotones.add(jPanel2, java.awt.BorderLayout.NORTH);
 
         jPanel1.setOpaque(false);
         jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 20, 5));
@@ -2648,24 +2670,6 @@ public class PanelIncidencias extends javax.swing.JPanel {
         jPanel1.add(btnGuardar);
 
         panelBotones.add(jPanel1, java.awt.BorderLayout.SOUTH);
-
-        jPanel2.setOpaque(false);
-        jPanel2.setPreferredSize(new java.awt.Dimension(420, 50));
-
-        btnConfirmarResolucion.setBackground(new java.awt.Color(46, 204, 113));
-        btnConfirmarResolucion.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
-        btnConfirmarResolucion.setForeground(new java.awt.Color(255, 255, 255));
-        btnConfirmarResolucion.setText("Confirmar resolución");
-        btnConfirmarResolucion.setFocusPainted(false);
-        btnConfirmarResolucion.setPreferredSize(new java.awt.Dimension(200, 35));
-        btnConfirmarResolucion.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnConfirmarResolucionActionPerformed(evt);
-            }
-        });
-        jPanel2.add(btnConfirmarResolucion);
-
-        panelBotones.add(jPanel2, java.awt.BorderLayout.NORTH);
 
         panelDetalle.add(panelBotones, java.awt.BorderLayout.SOUTH);
 
